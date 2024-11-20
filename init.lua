@@ -16,20 +16,37 @@ local is_tree_view_mode = ya.sync(function(state, _)
 	return state.tree
 end)
 
-function M:setup()
+local set_opts = ya.sync(function(state, opts)
+	if state.opts == nil then
+		state.opts = { level = 3 }
+	end
+
+	for key, value in pairs(opts or {}) do
+		state.opts[key] = value
+	end
+end)
+
+local get_opts = ya.sync(function(state)
+	return state.opts
+end)
+
+function M:setup(opts)
+	set_opts(opts)
+
 	toggle_view_mode()
 end
 
-function M:entry(_)
+function M:entry()
 	toggle_view_mode()
 
 	ya.manager_emit("seek", { 0 })
 end
 
 function M:peek()
+	local level = get_opts().level
+
 	local args = {
-		"-a",
-		"--oneline",
+		"--all",
 		"--color=always",
 		"--icons=always",
 		"--group-directories-first",
@@ -38,7 +55,8 @@ function M:peek()
 	}
 
 	if is_tree_view_mode() then
-		table.insert(args, "-T")
+		table.insert(args, "--tree")
+		table.insert(args, string.format("--level=%d", level))
 	end
 
 	local child = Command("eza"):args(args):stdout(Command.PIPED):stderr(Command.PIPED):spawn()
