@@ -30,14 +30,36 @@ local get_opts = ya.sync(function(state)
 	return state.opts
 end)
 
+local inc_level = ya.sync(function(state)
+	state.opts.level = state.opts.level + 1
+end)
+
+local dec_level = ya.sync(function(state)
+	if state.opts.level > 1 then
+		state.opts.level = state.opts.level - 1
+	end
+end)
+
 function M:setup(opts)
 	set_opts(opts)
 
 	toggle_view_mode()
 end
 
-function M:entry()
-	toggle_view_mode()
+function M:entry(args)
+	if args[1] then
+		local arg = args[1]
+
+		if arg == "inc-level" then
+			inc_level()
+		end
+
+		if arg == "dec-level" then
+			dec_level()
+		end
+	else
+		toggle_view_mode()
+	end
 
 	ya.manager_emit("seek", { 0 })
 end
