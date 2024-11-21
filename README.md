@@ -10,7 +10,7 @@ Tree mode:
 
 ## Requirements
 
-- [yazi](https://github.com/sxyazi/yazi)
+- [yazi (0.4+) or nightly](https://github.com/sxyazi/yazi)
 - [eza](https://github.com/eza-community/eza)
 
 ## Installation
