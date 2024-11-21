@@ -18,7 +18,7 @@ end)
 
 local set_opts = ya.sync(function(state, opts)
 	if state.opts == nil then
-		state.opts = { level = 3 }
+		state.opts = { level = 3, follow_symlinks = false, dereference = false }
 	end
 
 	for key, value in pairs(opts or {}) do
@@ -40,6 +40,10 @@ local dec_level = ya.sync(function(state)
 	end
 end)
 
+local toggle_follow_symlinks = ya.sync(function(state)
+	state.opts.follow_symlinks = not state.opts.follow_symlinks
+end)
+
 function M:setup(opts)
 	set_opts(opts)
 
@@ -47,9 +51,9 @@ function M:setup(opts)
 end
 
 function M:entry(args)
-	if args[1] then
-		local arg = args[1]
+	local arg = args[1]
 
+	if arg then
 		if arg == "inc-level" then
 			inc_level()
 		end
@@ -57,7 +61,12 @@ function M:entry(args)
 		if arg == "dec-level" then
 			dec_level()
 		end
+
+		if arg == "toggle-follow-symlinks" then
+			toggle_follow_symlinks()
+		end
 	else
+		set_opts()
 		toggle_view_mode()
 	end
 
@@ -65,7 +74,7 @@ function M:entry(args)
 end
 
 function M:peek()
-	local level = get_opts().level
+	local opts = get_opts()
 
 	local args = {
 		"--all",
@@ -78,7 +87,17 @@ function M:peek()
 
 	if is_tree_view_mode() then
 		table.insert(args, "--tree")
-		table.insert(args, string.format("--level=%d", level))
+		table.insert(args, string.format("--level=%d", opts.level))
+	end
+
+	if opts then
+		if opts.follow_symlinks then
+			table.insert(args, "--follow-symlinks")
+		end
+
+		if opts.dereference then
+			table.insert(args, "--dereference")
+		end
 	end
 
 	local child = Command("eza"):args(args):stdout(Command.PIPED):stderr(Command.PIPED):spawn()
